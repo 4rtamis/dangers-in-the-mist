@@ -1,0 +1,10 @@
+{
+	"svelte.enable-ts-plugin": true,
+	"files.associations": {
+		"*.css": "tailwindcss"
+	},
+	"tailwindCSS.includeLanguages": {
+		"svelte": "html"
+	},
+	"tailwindCSS.experimental.configFile": "src/app.css"
+}
