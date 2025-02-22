@@ -5,7 +5,7 @@
 	import Heading from '@tiptap/extension-heading';
 	import Paragraph from '@tiptap/extension-paragraph';
 	import Text from '@tiptap/extension-text';
-	import { MistHighlight } from '$lib/tiptap/extension-tag';
+	import { MistHighlight } from '$lib/tiptap/extension-mist-highlight';
 
 	let element: Element;
 	let editor: Editor;
@@ -71,13 +71,13 @@
 	</button>
 
 	<button
-		on:click={() => editor.chain().focus().toggleTag().run()}
+		on:click={() => editor.chain().focus().toggleMistHighlight().run()}
 		class:active={editor.isActive('mistHighlight')}
 	>
 		Toggle tag
 	</button>
 	<button
-		on:click={() => editor.chain().focus().unsetTag().run()}
+		on:click={() => editor.chain().focus().unsetMistHighlight().run()}
 		disabled={!editor.isActive('mistHighlight')}
 	>
 		Unset tag

@@ -9,39 +9,43 @@ export interface MistHighlightOptions {
 	HTMLAttributes: Record<string, any>;
 }
 
+type MistHighlightKind = 'tag' | 'status' | 'spectrum';
+
 declare module '@tiptap/core' {
 	interface Commands<ReturnType> {
 		mistHighlight: {
 			/**
-			 * Set a mistHighlight mark
+			 * Set a mistHighlight mark (either tag, status or spectrum)
 			 * @param attributes The mistHighlight attributes
-			 * @example editor.commands.setTag({ color: 'red' })
+			 * @example editor.commands.setTag({ kind: 'status' })
 			 */
-			setTag: (attributes?: { color: string }) => ReturnType;
+			setMistHighlight: (attributes?: { kind: MistHighlightKind }) => ReturnType;
 			/**
-			 * Toggle a mistHighlight mark
+			 * Toggle a mistHighlight mark (either tag, status or spectrum)
 			 * @param attributes The mistHighlight attributes
-			 * @example editor.commands.toggleTag({ color: 'red' })
+			 * @example editor.commands.toggleTag({ kind: 'status' })
 			 */
-			toggleTag: (attributes?: { color: string }) => ReturnType;
+			toggleMistHighlight: (attributes?: { kind: MistHighlightKind }) => ReturnType;
 			/**
 			 * Unset a mistHighlight mark
 			 * @example editor.commands.unsetTag()
 			 */
-			unsetTag: () => ReturnType;
+			unsetMistHighlight: () => ReturnType;
 		};
 	}
 }
 
+// Regex for matching the mistHighlight syntax
 export const generalInputRegex = /(?:^|\s)(\{(?!\s+\{)((?:[^\}]+))\}(?!\s+\}))$/;
+export const generalPasteRegex = /(?:^|\s)(\{(?!\s+\{)((?:[^\}]+))\}(?!\s+\}))$/g;
 export const spectrumRegex = /:\d+}/;
 export const statusRegex = /-\d+}/;
 
-export const generalPasteRegex = /(?:^|\s)(\{(?!\s+\{)((?:[^\}]+))\}(?!\s+\}))$/g;
-export const kindClassMap = {
-	tag: 'bg-yellow-300',
-	status: 'bg-green-300',
-	spectrum: 'bg-red-300'
+// Map of mistHighlight kind to CSS class
+export const kindClassMap: Record<MistHighlightKind, string> = {
+	tag: 'bg-mist-tag italic',
+	status: 'bg-mist-status italic',
+	spectrum: 'bg-mist-spectrum italic'
 };
 
 export const MistHighlight = Mark.create<MistHighlightOptions>({
@@ -56,12 +60,15 @@ export const MistHighlight = Mark.create<MistHighlightOptions>({
 	addAttributes() {
 		return {
 			kind: {
-				default: 'tag',
-				parseHTML: (element) => element.getAttribute('data-type') || 'tag',
+				default: 'tag' as MistHighlightKind,
+				parseHTML: (element) =>
+					Object.keys(kindClassMap).includes(element.getAttribute('data-type') || '')
+						? (element.getAttribute('data-type') as MistHighlightKind)
+						: ('tag' as MistHighlightKind),
 				renderHTML: (attributes) => {
 					return {
 						'data-type': attributes.kind,
-						class: kindClassMap[attributes.kind] + ''
+						class: kindClassMap[attributes.kind as MistHighlightKind] + ''
 					};
 				}
 			}
@@ -82,17 +89,17 @@ export const MistHighlight = Mark.create<MistHighlightOptions>({
 
 	addCommands() {
 		return {
-			setTag:
+			setMistHighlight:
 				(attributes) =>
 				({ commands }) => {
 					return commands.setMark(this.name, attributes);
 				},
-			toggleTag:
+			toggleMistHighlight:
 				(attributes) =>
 				({ commands }) => {
 					return commands.toggleMark(this.name, attributes);
 				},
-			unsetTag:
+			unsetMistHighlight:
 				() =>
 				({ commands }) => {
 					return commands.unsetMark(this.name);
@@ -102,7 +109,7 @@ export const MistHighlight = Mark.create<MistHighlightOptions>({
 
 	addKeyboardShortcuts() {
 		return {
-			'Mod-Shift-h': () => this.editor.commands.toggleTag()
+			'Mod-Shift-h': () => this.editor.commands.toggleMistHighlight()
 		};
 	},
 
