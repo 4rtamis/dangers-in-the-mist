@@ -5,6 +5,5 @@
 	},
 	"tailwindCSS.includeLanguages": {
 		"svelte": "html"
-	},
-	"tailwindCSS.experimental.configFile": "src/app.css"
+	}
 }

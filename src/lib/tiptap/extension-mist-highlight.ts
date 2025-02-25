@@ -62,12 +62,12 @@ export const MistHighlight = Mark.create<MistHighlightOptions>({
 			kind: {
 				default: 'tag' as MistHighlightKind,
 				parseHTML: (element) =>
-					Object.keys(kindClassMap).includes(element.getAttribute('data-type') || '')
-						? (element.getAttribute('data-type') as MistHighlightKind)
+					Object.keys(kindClassMap).includes(element.getAttribute('data-kind') || '')
+						? (element.getAttribute('data-kind') as MistHighlightKind)
 						: ('tag' as MistHighlightKind),
 				renderHTML: (attributes) => {
 					return {
-						'data-type': attributes.kind,
+						'data-kind': attributes.kind,
 						class: kindClassMap[attributes.kind as MistHighlightKind] + ''
 					};
 				}
