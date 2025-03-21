@@ -10,7 +10,7 @@
 	import Bold from '@tiptap/extension-bold';
 	import HorizontalRule from '@tiptap/extension-horizontal-rule';
 	import Text from '@tiptap/extension-text';
-	import { MistHighlight } from '$lib/tiptap/extension-mist-highlight';
+	import { MistHighlight } from '$lib/screen/widgets/tiptap/extension-mist-highlight';
 
 	let element: Element;
 	let editor: Editor;
