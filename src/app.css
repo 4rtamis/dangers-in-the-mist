@@ -56,4 +56,14 @@
 	--color-mist-tag: #fff2ab;
 	--color-mist-status: #e2e9b4;
 	--color-mist-spectrum: #f9d0c4;
+	--color-mist-side-box: #e0d9c1;
+	--color-mist-clue-box: #fdf0a8;
+}
+
+body {
+	background-image: url(/img/com-background.jpg);
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: cover;
+	overflow: hidden;
 }

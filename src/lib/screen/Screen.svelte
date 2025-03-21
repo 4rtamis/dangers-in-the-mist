@@ -16,8 +16,16 @@
 	const initialItems: Item[] = [
 		{ id: '1', type: 'placeholder' },
 		{ id: '2', type: 'placeholder' },
-		{ id: '3', type: 'editor' },
-		{ id: '4', type: 'placeholder' }
+		{ id: '3', type: 'placeholder' },
+		{ id: '4', type: 'placeholder' },
+		{ id: '5', type: 'placeholder' },
+		{ id: '6', type: 'placeholder' },
+		{ id: '7', type: 'placeholder' },
+		{ id: '8', type: 'placeholder' },
+		{ id: '9', type: 'placeholder' },
+		{ id: '10', type: 'placeholder' },
+		{ id: '11', type: 'placeholder' },
+		{ id: '12', type: 'placeholder' }
 	];
 
 	let items = $state(initialItems);
@@ -64,21 +72,18 @@
 	}
 </script>
 
-<button onclick={toggleDrag} class="mb-4 rounded bg-blue-500 p-2 text-white">
+<button onclick={toggleDrag} class="bg-mist-status mb-4 cursor-pointer rounded p-2 text-black">
 	{dragEnabled ? 'Disable Drag' : 'Enable Drag'}
 </button>
 
 <div class="h-full w-full" bind:this={container}>
-	<div class="grid grid-cols-4 gap-2">
+	<div class="grid h-full w-full grid-cols-4 place-items-stretch gap-1">
 		{#each slottedItems as { slotId, itemId, item }}
 			{#key slotId}
-				<div class="slot border p-2" data-swapy-slot={slotId}>
+				<div class="bg rounded bg-black/5 p-2" data-swapy-slot={slotId}>
 					{#if item}
 						{#key itemId}
-							<div
-								class="flex items-center justify-center border bg-gray-200 p-4"
-								data-swapy-item={itemId}
-							>
+							<div class="h-full w-full" data-swapy-item={itemId}>
 								{#if item.type === 'editor'}
 									<Tiptap />
 								{:else if item.type === 'placeholder'}
