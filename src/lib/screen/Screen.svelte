@@ -4,10 +4,6 @@
 	import Tiptap from './widgets/tiptap/Tiptap.svelte';
 	import Placeholder from './widgets/Placeholder.svelte';
 
-	let container: HTMLElement;
-	let swapy: Swapy | null = null;
-	let dragEnabled = $state(true);
-
 	type Item = {
 		id: string;
 		type: 'placeholder' | 'editor';
@@ -15,50 +11,56 @@
 
 	type Slot = {
 		id: string;
+		row: number;
+		col: number;
 		rowSpan: number;
 		colSpan: number;
 	};
 
+	type Grid = {
+		rows: number;
+		cols: number;
+	};
+
+	let intialGrid: Grid = { rows: 3, cols: 4 };
+
 	let initialSlots: Slot[] = [
-		{ id: 'slot-1', rowSpan: 1, colSpan: 1 },
-		{ id: 'slot-2', rowSpan: 1, colSpan: 1 },
-		{ id: 'slot-3', rowSpan: 1, colSpan: 1 },
-		{ id: 'slot-4', rowSpan: 1, colSpan: 1 },
-		{ id: 'slot-5', rowSpan: 1, colSpan: 1 },
-		{ id: 'slot-6', rowSpan: 1, colSpan: 1 },
-		{ id: 'slot-7', rowSpan: 1, colSpan: 1 },
-		{ id: 'slot-8', rowSpan: 1, colSpan: 1 },
-		{ id: 'slot-9', rowSpan: 1, colSpan: 1 },
-		{ id: 'slot-10', rowSpan: 1, colSpan: 1 },
-		{ id: 'slot-11', rowSpan: 1, colSpan: 1 },
-		{ id: 'slot-12', rowSpan: 1, colSpan: 1 }
+		{ id: 'slot-1', row: 1, col: 1, rowSpan: 1, colSpan: 4 },
+		{ id: 'slot-2', row: 2, col: 1, rowSpan: 2, colSpan: 2 },
+		{ id: 'slot-3', row: 2, col: 3, rowSpan: 1, colSpan: 2 },
+		{ id: 'slot-4', row: 3, col: 3, rowSpan: 1, colSpan: 2 }
 	];
 
-	const initialItems: Item[] = [
-		{ id: '1', type: 'placeholder' },
-		{ id: '2', type: 'placeholder' },
-		{ id: '3', type: 'placeholder' },
-		{ id: '4', type: 'placeholder' },
-		{ id: '5', type: 'placeholder' },
-		{ id: '6', type: 'placeholder' },
-		{ id: '7', type: 'placeholder' }
-	];
+	const initialItems: Item[] = [{ id: 'item-1', type: 'placeholder' }];
 
-	function initSlotItemMap<Item>(
-		slots: Slot[],
-		items: Item[],
-		idField: keyof Item
-	): SlotItemMapArray {
+	const initialSlotsToMerge: String[] = ['slot-3', 'slot-4'];
+
+	function initSlotItemMap<Item>(slots: Slot[], items: Item[]): SlotItemMapArray {
 		return slots.map((slot, index) => ({
-			item: items[index] ? (items[index][idField] as string) : '',
+			item: items[index] ? (items[index] as Item).id : '',
 			slot: slot.id
 		}));
 	}
 
+	function toSlottedItems(items: Item[], slots: Slot[], slotItemMap: SlotItemMapArray) {
+		return slots.map((slot) => {
+			const map = slotItemMap.find((m) => m.slot === slot.id);
+			const item = items.find((i) => i.id === map?.item);
+			return { slotId: slot.id, itemId: map?.item, slot, item };
+		});
+	}
+
+	let grid = $state(intialGrid);
 	let slots = $state(initialSlots);
+	$inspect(slots);
 	let items = $state(initialItems);
-	let slotItemMap = $state(initSlotItemMap(initialSlots, initialItems, 'id'));
-	let slottedItems = $derived(utils.toSlottedItems(items, 'id', slotItemMap));
+	let slotItemMap = $state(initSlotItemMap(initialSlots, initialItems));
+	let slottedItems = $derived(toSlottedItems(items, slots, slotItemMap));
+	let slotsToMerge = $state(initialSlotsToMerge);
+
+	let container: HTMLElement;
+	let swapy: Swapy | null = null;
+	let dragEnabled = $state(true);
 
 	let setSlotItemMap = (value: SlotItemMapArray) => (slotItemMap = value);
 
@@ -99,86 +101,109 @@
 		}
 	}
 
-	// Resizing Logic
-	let resizingSlot: string | null = null;
+	function mergeSlots() {
+		if (slotsToMerge.length === 0) return;
 
-	function startResizing(event: MouseEvent, slotId: string) {
-		event.preventDefault();
-		resizingSlot = slotId;
+		// Find the bounding box of the slots to merge
+		let minRow = Infinity,
+			maxRow = -Infinity;
+		let minCol = Infinity,
+			maxCol = -Infinity;
+		let slotSet = new Set(slotsToMerge); // For quick lookup
 
-		window.addEventListener('mousemove', resizeSlot);
-		window.addEventListener('mouseup', stopResizing);
-	}
+		slotsToMerge.forEach((slotId) => {
+			const slot = slots.find((s) => s.id === slotId);
 
-	function resizeSlot(event: MouseEvent) {
-		if (!resizingSlot) return;
+			// Check if any of the slots to merge has an item
+			const map = slotItemMap.find((m) => m.slot === slotId);
+			if (map?.item) {
+				throw new Error('Merge aborted: One of the selected slots has an item.');
+			}
 
-		let slot = slots.find((s) => s.id === resizingSlot);
-		if (!slot) return;
+			if (slot) {
+				minRow = Math.min(minRow, slot.row);
+				maxRow = Math.max(maxRow, slot.row + slot.rowSpan - 1);
+				minCol = Math.min(minCol, slot.col);
+				maxCol = Math.max(maxCol, slot.col + slot.colSpan - 1);
+			}
+		});
 
-		// Calculate new size based on cursor movement
-		if (event.movementX > 5) slot.colSpan = Math.min(slot.colSpan + 1, 4);
-		if (event.movementX < -5) slot.colSpan = Math.max(slot.colSpan - 1, 1);
-		if (event.movementY > 5) slot.rowSpan = Math.min(slot.rowSpan + 1, 4);
-		if (event.movementY < -5) slot.rowSpan = Math.max(slot.rowSpan - 1, 1);
+		// Check if all positions in the bounding box are covered by the slots in slotsToMerge
+		for (let r = minRow; r <= maxRow; r++) {
+			for (let c = minCol; c <= maxCol; c++) {
+				const isCovered = slots.some(
+					(s) =>
+						slotSet.has(s.id) &&
+						r >= s.row &&
+						r < s.row + s.rowSpan &&
+						c >= s.col &&
+						c < s.col + s.colSpan
+				);
+				if (!isCovered) {
+					throw new Error('Merge aborted: The selected slots do not form a full rectangle.');
+				}
+			}
+		}
 
-		// Update state
-		slots = [...slots];
-	}
+		// Perform the merge
+		const mergedSlot = {
+			id: `merged-${Date.now()}`,
+			row: minRow,
+			col: minCol,
+			rowSpan: maxRow - minRow + 1,
+			colSpan: maxCol - minCol + 1
+		};
 
-	function stopResizing() {
-		resizingSlot = null;
-		window.removeEventListener('mousemove', resizeSlot);
-		window.removeEventListener('mouseup', stopResizing);
+		console.log(mergedSlot);
+
+		// Remove previous slots and add new merged slot
+		slots = slots.filter((s) => !slotSet.has(s.id));
+		slots.push(mergedSlot);
+		slotsToMerge = [];
+		swapy.update();
 	}
 </script>
 
-<button onclick={toggleDrag} class="bg-mist-status mb-4 cursor-pointer rounded p-2 text-black">
-	{dragEnabled ? 'Disable Drag' : 'Enable Drag'}
-</button>
+<div class="flex items-center gap-4">
+	<button onclick={toggleDrag} class="bg-mist-status mb-4 cursor-pointer rounded p-2 text-black">
+		{dragEnabled ? 'Disable Drag' : 'Enable Drag'}
+	</button>
 
-<div class="h-full w-full" bind:this={container}>
-	<div class="grid h-full w-full auto-rows-[100px] grid-cols-4 gap-1">
-		{#each slottedItems as { slotId, itemId, item }, index}
-			{#key slotId}
-				{#if slots[index]}
-					<div
-						class="bg relative rounded bg-black/5 p-2"
-						data-swapy-slot={slotId}
-						style="grid-column: span {slots[index].colSpan}; grid-row: span {slots[index].rowSpan};"
-					>
-						{#if item}
-							{#key itemId}
-								<div class="h-full w-full" data-swapy-item={itemId}>
-									{#if item.type === 'editor'}
-										<Tiptap />
-									{:else if item.type === 'placeholder'}
-										<Placeholder />
-									{/if}
-									<!-- Resize Handle -->
-									<div
-										class="resize-handle absolute right-0 bottom-0 h-4 w-4 cursor-se-resize bg-blue-500"
-										onmousedown={(event) => startResizing(event, slotId)}
-									></div>
-								</div>
-							{/key}
-						{/if}
-					</div>
-				{/if}
-			{/key}
-		{/each}
-	</div>
+	<button onclick={mergeSlots} class="bg-mist-status mb-4 cursor-pointer rounded p-2 text-black">
+		Merge Slots
+	</button>
 </div>
-
-<style>
-	.resize-handle {
-		width: 12px;
-		height: 12px;
-		background: blue;
-		position: absolute;
-		bottom: 2px;
-		right: 2px;
-		cursor: se-resize;
-		border-radius: 50%;
-	}
-</style>
+<div class="h-full w-full" bind:this={container}>
+	{#key grid}
+		<div
+			class="grid h-full w-full gap-1"
+			style="grid-template-columns: repeat({grid.cols}, 1fr); grid-template-rows: repeat({grid.rows}, 1fr);"
+		>
+			{#each slottedItems as { slotId, itemId, slot, item }, index}
+				{#if slot}
+					{#key slot.id}
+						<div
+							class="bg relative rounded bg-black/5 p-2 {slotsToMerge.includes(slot.id)
+								? 'border-blue border-3'
+								: ''}"
+							data-swapy-slot={slot.id}
+							style="grid-column: {slot.col} / span {slot.colSpan}; grid-row: {slot.row} / span {slot.rowSpan};"
+						>
+							{#if item}
+								{#key itemId}
+									<div class="h-full w-full" data-swapy-item={itemId}>
+										{#if item.type === 'editor'}
+											<Tiptap />
+										{:else if item.type === 'placeholder'}
+											<Placeholder />
+										{/if}
+									</div>
+								{/key}
+							{/if}
+						</div>
+					{/key}
+				{/if}
+			{/each}
+		</div>
+	{/key}
+</div>
