@@ -52,9 +52,9 @@
 
 	let grid = $state(intialGrid);
 	let slots = $state(initialSlots);
-	$inspect(slots);
 	let items = $state(initialItems);
 	let slotItemMap = $state(initSlotItemMap(initialSlots, initialItems));
+	$inspect(slotItemMap);
 	let slottedItems = $derived(toSlottedItems(items, slots, slotItemMap));
 	let slotsToMerge = $state(initialSlotsToMerge);
 
@@ -111,14 +111,20 @@
 			maxCol = -Infinity;
 		let slotSet = new Set(slotsToMerge); // For quick lookup
 
-		slotsToMerge.forEach((slotId) => {
-			const slot = slots.find((s) => s.id === slotId);
+		let itemId = '';
 
+		slotsToMerge.forEach((slotId) => {
 			// Check if any of the slots to merge has an item
 			const map = slotItemMap.find((m) => m.slot === slotId);
 			if (map?.item) {
-				throw new Error('Merge aborted: One of the selected slots has an item.');
+				if (itemId === '') {
+					itemId = map.item;
+				} else {
+					throw new Error('Merge aborted: More than one selected slot has an item.');
+				}
 			}
+
+			const slot = slots.find((s) => s.id === slotId);
 
 			if (slot) {
 				minRow = Math.min(minRow, slot.row);
@@ -154,13 +160,65 @@
 			colSpan: maxCol - minCol + 1
 		};
 
-		console.log(mergedSlot);
+		// Replace slots with a new array containing the merged slot
+		slots = [...slots.filter((s) => !slotSet.has(s.id)), mergedSlot];
 
-		// Remove previous slots and add new merged slot
-		slots = slots.filter((s) => !slotSet.has(s.id));
-		slots.push(mergedSlot);
+		// Remove previous slots from slotItemMap and add the new merged slot
+		slotItemMap = [
+			...slotItemMap.filter((m) => !slotSet.has(m.slot)),
+			{ slot: mergedSlot.id, item: itemId }
+		];
+
+		// Clear slotsToMerge
 		slotsToMerge = [];
-		swapy.update();
+
+		// Update Swapy
+		if (swapy) {
+			swapy.update();
+		}
+	}
+
+	function splitSlot(slotId: string) {
+		const slot = slots.find((s) => s.id === slotId);
+		if (!slot) return;
+
+		// Check if the slot has an item
+		let itemId = slotItemMap.find((m) => m.slot === slotId)?.item;
+
+		// Create new slots
+		let id: string;
+		let newSlots: Slot[] = [];
+		let newSlotItemMaps: SlotItemMapArray = [];
+		for (let r = slot.row; r < slot.row + slot.rowSpan; r++) {
+			for (let c = slot.col; c < slot.col + slot.colSpan; c++) {
+				id = `split-${Date.now()}-${r}-${c}`;
+				newSlots.push({
+					id,
+					row: r,
+					col: c,
+					rowSpan: 1,
+					colSpan: 1
+				});
+
+				if (itemId) {
+					newSlotItemMaps.push({ slot: id, item: itemId });
+					itemId = '';
+				} else {
+					newSlotItemMaps.push({ slot: id, item: '' });
+				}
+			}
+		}
+
+		// Replace slots with a new array containing the new slots
+		slots = [...slots.filter((s) => s.id !== slotId), ...newSlots];
+
+		// Remove previous slot from slotItemMap and add the new slots
+		slotItemMap = [...slotItemMap.filter((m) => m.slot !== slotId), ...newSlotItemMaps];
+
+		// Update Swapy
+		if (swapy) {
+			swapy.update();
+		}
 	}
 </script>
 
@@ -171,6 +229,13 @@
 
 	<button onclick={mergeSlots} class="bg-mist-status mb-4 cursor-pointer rounded p-2 text-black">
 		Merge Slots
+	</button>
+
+	<button
+		onclick={() => splitSlot('slot-2')}
+		class="bg-mist-status mb-4 cursor-pointer rounded p-2 text-black"
+	>
+		Split Slot 2
 	</button>
 </div>
 <div class="h-full w-full" bind:this={container}>
