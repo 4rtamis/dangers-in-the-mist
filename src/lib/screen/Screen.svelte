@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { createSwapy, type SlotItemMapArray, type Swapy, utils } from 'swapy';
 	import { onDestroy, onMount, untrack } from 'svelte';
-	import Tiptap from './widgets/tiptap/Tiptap.svelte';
 	import Placeholder from './widgets/placeholder/Placeholder.svelte';
+	import Note from './widgets/notes/Note.svelte';
 
 	type ScreenItem = {
 		id: string;
-		type: 'placeholder' | 'editor';
+		type: 'placeholder' | 'note';
 	};
 
 	type ScreenSlot = {
@@ -31,12 +31,13 @@
 		{ id: 'slot-4', row: 3, col: 3, rowSpan: 1, colSpan: 2 }
 	];
 
-	const initialItems: ScreenItem[] = [
-		{ id: 'item-1', type: 'placeholder' },
-		{ id: 'item-2', type: 'placeholder' }
-	];
+	const initialItems: ScreenItem[] = [{ id: 'item-1', type: 'note' }];
 
-	const initialSlotsToMerge: String[] = ['slot-3', 'slot-4'];
+	const initialSlotsToMerge: String[] = [
+		// 'slot-1',
+		// 'slot-2',
+		// 'slot-3'
+	];
 
 	function initSlotItemMap(slots: ScreenSlot[], items: ScreenItem[]): SlotItemMapArray {
 		return slots.map((slot, index) => ({
@@ -251,7 +252,7 @@
 				{#if slot}
 					{#key slot.id}
 						<div
-							class="bg relative rounded bg-black/5 p-2 {slotsToMerge.includes(slot.id)
+							class="bg relative rounded bg-black/5 {slotsToMerge.includes(slot.id)
 								? 'border-blue border-3'
 								: ''}"
 							data-swapy-slot={slot.id}
@@ -259,9 +260,9 @@
 						>
 							{#if item}
 								{#key itemId}
-									<div class="h-full w-full" data-swapy-item={itemId}>
-										{#if item.type === 'editor'}
-											<Tiptap />
+									<div class="h-full w-full shadow-xl" data-swapy-item={itemId}>
+										{#if item.type === 'note'}
+											<Note />
 										{:else if item.type === 'placeholder'}
 											<Placeholder />
 										{/if}
