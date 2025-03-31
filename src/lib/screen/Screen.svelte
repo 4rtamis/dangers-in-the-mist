@@ -2,14 +2,14 @@
 	import { createSwapy, type SlotItemMapArray, type Swapy, utils } from 'swapy';
 	import { onDestroy, onMount, untrack } from 'svelte';
 	import Tiptap from './widgets/tiptap/Tiptap.svelte';
-	import Placeholder from './widgets/Placeholder.svelte';
+	import Placeholder from './widgets/placeholder/Placeholder.svelte';
 
-	type Item = {
+	type ScreenItem = {
 		id: string;
 		type: 'placeholder' | 'editor';
 	};
 
-	type Slot = {
+	type ScreenSlot = {
 		id: string;
 		row: number;
 		col: number;
@@ -17,32 +17,35 @@
 		colSpan: number;
 	};
 
-	type Grid = {
+	type ScreenGrid = {
 		rows: number;
 		cols: number;
 	};
 
-	let intialGrid: Grid = { rows: 3, cols: 4 };
+	let intialGrid: ScreenGrid = { rows: 3, cols: 4 };
 
-	let initialSlots: Slot[] = [
+	let initialSlots: ScreenSlot[] = [
 		{ id: 'slot-1', row: 1, col: 1, rowSpan: 1, colSpan: 4 },
 		{ id: 'slot-2', row: 2, col: 1, rowSpan: 2, colSpan: 2 },
 		{ id: 'slot-3', row: 2, col: 3, rowSpan: 1, colSpan: 2 },
 		{ id: 'slot-4', row: 3, col: 3, rowSpan: 1, colSpan: 2 }
 	];
 
-	const initialItems: Item[] = [{ id: 'item-1', type: 'placeholder' }];
+	const initialItems: ScreenItem[] = [
+		{ id: 'item-1', type: 'placeholder' },
+		{ id: 'item-2', type: 'placeholder' }
+	];
 
 	const initialSlotsToMerge: String[] = ['slot-3', 'slot-4'];
 
-	function initSlotItemMap<Item>(slots: Slot[], items: Item[]): SlotItemMapArray {
+	function initSlotItemMap(slots: ScreenSlot[], items: ScreenItem[]): SlotItemMapArray {
 		return slots.map((slot, index) => ({
-			item: items[index] ? (items[index] as Item).id : '',
+			item: items[index] ? items[index].id : '',
 			slot: slot.id
 		}));
 	}
 
-	function toSlottedItems(items: Item[], slots: Slot[], slotItemMap: SlotItemMapArray) {
+	function toSlottedItems(items: ScreenItem[], slots: ScreenSlot[], slotItemMap: SlotItemMapArray) {
 		return slots.map((slot) => {
 			const map = slotItemMap.find((m) => m.slot === slot.id);
 			const item = items.find((i) => i.id === map?.item);
@@ -187,7 +190,7 @@
 
 		// Create new slots
 		let id: string;
-		let newSlots: Slot[] = [];
+		let newSlots: ScreenSlot[] = [];
 		let newSlotItemMaps: SlotItemMapArray = [];
 		for (let r = slot.row; r < slot.row + slot.rowSpan; r++) {
 			for (let c = slot.col; c < slot.col + slot.colSpan; c++) {
