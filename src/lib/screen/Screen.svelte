@@ -246,13 +246,15 @@
 	{#key grid}
 		<div
 			class="grid h-full w-full gap-1"
-			style="grid-template-columns: repeat({grid.cols}, 1fr); grid-template-rows: repeat({grid.rows}, 1fr);"
+			style="grid-template-columns: repeat({grid.cols}, minmax(0, 1fr)); grid-template-rows: repeat({grid.rows}, minmax(0, 1fr));"
 		>
 			{#each slottedItems as { slotId, itemId, slot, item }, index}
 				{#if slot}
 					{#key slot.id}
 						<div
-							class="relative overflow-scroll rounded bg-black/5 {slotsToMerge.includes(slot.id)
+							class="relative max-h-full max-w-full rounded bg-black/5 {slotsToMerge.includes(
+								slot.id
+							)
 								? 'border-blue border-3'
 								: ''}"
 							data-swapy-slot={slot.id}
