@@ -252,7 +252,7 @@
 				{#if slot}
 					{#key slot.id}
 						<div
-							class="bg relative rounded bg-black/5 {slotsToMerge.includes(slot.id)
+							class="relative overflow-scroll rounded bg-black/5 {slotsToMerge.includes(slot.id)
 								? 'border-blue border-3'
 								: ''}"
 							data-swapy-slot={slot.id}
