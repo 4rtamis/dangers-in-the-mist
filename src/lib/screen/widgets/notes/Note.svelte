@@ -28,6 +28,7 @@
 						}
 					}
 				}),
+
 				NoteHeading,
 				Table.configure({
 					lastColumnResizable: false,

@@ -3,10 +3,11 @@
 	import { onDestroy, onMount, untrack } from 'svelte';
 	import Placeholder from './widgets/placeholder/Placeholder.svelte';
 	import Note from './widgets/notes/Note.svelte';
+	import Edra from './widgets/edra/Edra.svelte';
 
 	type ScreenItem = {
 		id: string;
-		type: 'placeholder' | 'note';
+		type: 'placeholder' | 'note' | 'edra';
 	};
 
 	type ScreenSlot = {
@@ -31,7 +32,12 @@
 		{ id: 'slot-4', row: 3, col: 3, rowSpan: 1, colSpan: 2 }
 	];
 
-	const initialItems: ScreenItem[] = [{ id: 'item-1', type: 'note' }];
+	const initialItems: ScreenItem[] = [
+		{ id: 'item-1', type: 'note' },
+		{ id: 'item-2', type: 'edra' },
+		{ id: 'item-3', type: 'edra' },
+		{ id: 'item-4', type: 'note' }
+	];
 
 	const initialSlotsToMerge: String[] = [
 		// 'slot-1',
@@ -265,6 +271,8 @@
 									<div class="h-full w-full shadow-xl" data-swapy-item={itemId}>
 										{#if item.type === 'note'}
 											<Note />
+										{:else if item.type === 'edra'}
+											<Edra />
 										{:else if item.type === 'placeholder'}
 											<Placeholder />
 										{/if}
