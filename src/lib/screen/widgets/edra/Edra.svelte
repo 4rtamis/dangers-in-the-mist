@@ -147,6 +147,51 @@
 			td {
 				@apply px-3;
 			}
+
+			/* Lines */
+			hr {
+				@apply border-mist-note-border bg-mist-note-border mx-3 my-2 h-0.5;
+			}
+
+			/* Blockquote */
+			blockquote {
+				@apply border-mist-note-border mx-3 my-2 rounded-lg bg-black/10 p-3 text-black;
+			}
+
+			/* Lists */
+			ul {
+				@apply mb-4 list-inside list-disc pl-6;
+			}
+
+			ol {
+				@apply mb-4 list-inside list-decimal pl-6;
+			}
+
+			/* Style for list items */
+			li {
+				@apply mb-2 text-base leading-relaxed text-gray-800;
+			}
+
+			/* Nested unordered list */
+			ul ul {
+				@apply mt-2 list-disc pl-5;
+			}
+
+			/* Nested ordered list */
+			ol ol {
+				@apply mt-2 list-decimal pl-5;
+			}
+
+			/* Nested unordered inside ordered (and vice versa) */
+			ul ol,
+			ol ul {
+				@apply mt-2 pl-5;
+			}
+
+			ul p,
+			ol p {
+				@apply inline;
+			}
 		}
 	}
 </style>

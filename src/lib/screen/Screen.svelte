@@ -33,10 +33,8 @@
 	];
 
 	const initialItems: ScreenItem[] = [
-		{ id: 'item-1', type: 'note' },
-		{ id: 'item-2', type: 'edra' },
-		{ id: 'item-3', type: 'edra' },
-		{ id: 'item-4', type: 'note' }
+		{ id: 'item-1', type: 'edra' },
+		{ id: 'item-2', type: 'edra' }
 	];
 
 	const initialSlotsToMerge: String[] = [
